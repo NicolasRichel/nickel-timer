@@ -1,0 +1,161 @@
+<link rel="import" href="../polymer/polymer-element.html">
+
+<dom-module id="nickel-timer">
+  <template>
+    <custom-style>
+      <style is="custom-style">
+        :host {
+          display: block;
+        }
+      </style>
+    </custom-style>
+    <div id="container">
+      <div hidden><slot name="details"></slot></div>
+    </div>
+  </template>
+  <script>
+    'use strict';
+    /**
+     * # Nickel Timer
+     * A simple and configurable timer element.
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class NickelTimer extends Polymer.Element {
+
+      static get is() { return 'nickel-timer'; }
+
+      static get properties() {
+        return {
+          /** Tic counter. */
+          count: {
+            type: Number,
+            value: 0,
+            notify: true
+          },
+
+          /** Details of the event fired by the timer. */
+          eventDetails: Object,
+
+          /** Name of the event fired by the timer. */
+          eventName: {
+            type: String,
+            value: 'tic'
+          },
+
+          /** Timer ID (returned by `setInterval`). */
+          timerId: {
+            type: Number,
+            value: 0,
+            notify: true
+          },
+
+          /** Time (in timerUnit) between two 'tic'. */
+          timerInterval: Number,
+
+          /** Maximum number of 'tic'. */
+          timerLimit: {
+            type: Number,
+            value: 1
+          },
+
+          /** Timer rate. */
+          timerRate: {
+            type: Number,
+            value: 1.0
+          },
+
+          /**
+           * Time unit :
+           * 	 ms : millisecond,
+           * 	 s : second (default),
+           * 	 min : minute,
+           * 	 h : hour,
+           * 	 d: day
+           */
+          timerUnit: {
+            type: String,
+            value: 's'
+          }
+        };
+      }
+
+      ready() {
+        super.ready();
+        this._setEventDetails();
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        this.initTimer();
+      }
+
+      initTimer() {
+        // (Re-)initialize the timer and `count` value
+        if (this.timerId) clearInterval(this.timerId);
+        this.set('count', 0);
+        // Compute the period between two 'clock tic' according to the values
+        // of the `timerInterval`, `timerUnit` and `timerRate` properties
+        let interval = Math.round(this.timerInterval*this._getUnitCoef()/this.timerRate);
+        interval = interval<2147483647 ? interval : 2147483647;
+        // Sets the `timerId` prop and start the timer by calling `setInterval`
+        this.set('timerId', setInterval(() => {
+          this.tic();
+          this.set('count', ++this.count);
+        }, interval));
+      }
+
+      /**
+       * Dispatch a custom event when a timer period end.
+       */
+      tic() {
+        this.dispatchEvent(
+          new CustomEvent(
+            this.eventName,
+            {
+              bubbles: true,
+              composed: true,
+              detail: this.eventDetails
+            }
+          )
+        );
+      }
+
+      /**
+       * Get a multiplicative factor according to the `timerUnit` prop.
+       *
+       * @return {Number} the number of milliseconds for 1 unit (`timerUnit`)
+       */
+      _getUnitCoef() {
+        switch(this.timerUnit) {
+          case 'ms': // millisecond
+            return 1;
+          case 's': // second
+            return 1000;
+          case 'min': // minute (60*1000)
+            return 60000;
+          case 'h': // hour (60*60*1000)
+            return 3600000;
+          case 'd': // day (24*60*60*1000)
+            return 86400000;
+          default: // second by default
+            return 1000;
+        }
+      }
+
+      /**
+       * Sets the details of the custom event dispatched on trigger.
+       */
+      _setEventDetails() {
+        const details = this.shadowRoot.querySelector('slot').assignedNodes().find((node) => {
+          const str = node.nodeName;
+          return str==='P' || str==='DIV' || str==='SPAN';
+        });
+        if (details) this.set('eventDetails', JSON.parse(details.textContent));
+      }
+    }
+    window.customElements.define(NickelTimer.is, NickelTimer);
+  </script>
+</dom-module>
