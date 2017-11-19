@@ -32,7 +32,7 @@
           <!--
           This timer should trigger a 'tic' event every 2 seconds.
           -->
-          <nickel-timer id="demo1" timer-interval="2"></nickel-timer>
+          <nickel-timer id="demo1" interval="2"></nickel-timer>
 
           <div>Counter : <span id="counter">0</span><span id="tic-tac"></span></div>
           <script>
@@ -60,9 +60,9 @@
         <template>
           <nickel-timer
             id="demo2"
-            timer-interval="1"
-            timer-limit="1">
-            <p slot="details">
+            interval="1"
+            count-limit="1">
+            <p slot="event-detail">
               {
                 "number": 1,
                 "text": "Hello World !",
@@ -70,10 +70,10 @@
               }
             </p>
           </nickel-timer>
-          <div>Event details : <span id="details"></span></div>
+          <div>Event detail : <span id="detail"></span></div>
           <script>
             document.getElementById('demo2').addEventListener('tic', (event) => {
-              document.getElementById('details').textContent = JSON.stringify(event.detail);
+              document.getElementById('detail').textContent = JSON.stringify(event.detail);
             });
           </script>
         </template>
@@ -87,8 +87,8 @@
             <template>
               <nickel-timer
                 id="demo3"
-                timer-interval="2"
-                timer-limit="5"
+                interval="2"
+                count-limit="5"
                 count="{{count}}">
               </nickel-timer>
               <div>Count : <span id="counter">[[count]]</span></div>

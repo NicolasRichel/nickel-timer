@@ -10,7 +10,7 @@
       </style>
     </custom-style>
     <div id="container">
-      <div hidden><slot name="details"></slot></div>
+      <div hidden><slot name="event-detail"></slot></div>
     </div>
   </template>
   <script>
@@ -36,8 +36,17 @@
             notify: true
           },
 
+          /**
+           * Maximum number of 'tic' (the `count` value at which the timer stops).
+           * If negative the timer will 'tic' indefinitly.
+           */
+          countLimit: {
+            type: Number,
+            value: -1
+          },
+
           /** Details of the event fired by the timer. */
-          eventDetails: Object,
+          eventDetail: Object,
 
           /** Name of the event fired by the timer. */
           eventName: {
@@ -45,28 +54,20 @@
             value: 'tic'
           },
 
+          /** Time (in `timerUnit`) between two 'tic'. */
+          interval: Number,
+
+          /** Timer rate. */
+          rate: {
+            type: Number,
+            value: 1.0
+          },
+
           /** Timer ID (returned by `setInterval`). */
           timerId: {
             type: Number,
             value: 0,
             notify: true
-          },
-
-          /** Time (in `timerUnit`) between two 'tic'. */
-          timerInterval: Number,
-
-          /**
-           * Maximum number of 'tic'.
-           */
-          timerLimit: {
-            type: Number,
-            value: -1
-          },
-
-          /** Timer rate. */
-          timerRate: {
-            type: Number,
-            value: 1.0
           },
 
           /**
@@ -77,7 +78,7 @@
            * 	 h : hour,
            * 	 d: day
            */
-          timerUnit: {
+          unit: {
             type: String,
             value: 's'
           }
@@ -86,11 +87,12 @@
 
       ready() {
         super.ready();
-        this._setEventDetails();
+        this._setEventDetail();
       }
 
       connectedCallback() {
         super.connectedCallback();
+        // Automatically start the timer when the element is attached to the DOM.
         this.startTimer();
       }
 
@@ -98,23 +100,25 @@
        * Initialize and start the timer.
        */
       startTimer() {
-        // (Re-)initialize the timer and `count` value
-        if (this.timerId) clearInterval(this.timerId);
+        // (Re-)Initialize the timer and `count` value
+        if (this.timerId) this.stopTimer();
         this.set('count', 0);
-        // Compute the period between two 'clock tic' according to the values
-        // of the `timerInterval`, `timerUnit` and `timerRate` properties
-        let interval = Math.round(this.timerInterval*this._getUnitCoef()/this.timerRate);
+        // Compute the period between two 'tic' according to the values
+        // of the `interval`, `unit` and `rate` properties
+        let interval = Math.round(this.interval*this._getUnitCoef()/this.rate);
         interval = interval<2147483647 ? interval : 2147483647;
         // Sets the `timerId` prop and start the timer by calling `setInterval`
         this.set('timerId', setInterval(() => {
           this.tic();
           this.set('count', ++this.count);
-          if (this.count===this.timerLimit) clearInterval(this.timerId);
+          if (this.count===this.countLimit) this.stopTimer();
         }, interval));
       }
 
       /**
        * Stop the timer (by calling `clearInterval`).
+       * This method is called when the `count-limit` is reached or to stop the
+       * timer restarting it.
        */
       stopTimer() { clearInterval(this.timerId); }
 
@@ -128,19 +132,19 @@
             {
               bubbles: true,
               composed: true,
-              detail: this.eventDetails
+              detail: this.eventDetail
             }
           )
         );
       }
 
       /**
-       * Get a multiplicative factor according to the `timerUnit` prop.
+       * Get a multiplicative factor according to the `unit` prop.
        *
-       * @return {Number} the number of milliseconds for 1 unit (`timerUnit`)
+       * @return {Number} the number of milliseconds for 1 unit (`unit`)
        */
       _getUnitCoef() {
-        switch(this.timerUnit) {
+        switch(this.unit) {
           case 'ms': // millisecond
             return 1;
           case 's': // second
@@ -159,12 +163,12 @@
       /**
        * Sets the details of the custom event dispatched on trigger.
        */
-      _setEventDetails() {
-        const details = this.shadowRoot.querySelector('slot').assignedNodes().find((node) => {
+      _setEventDetail() {
+        const detail = this.shadowRoot.querySelector('slot').assignedNodes().find((node) => {
           const str = node.nodeName;
           return str==='P' || str==='DIV' || str==='SPAN';
         });
-        if (details) this.set('eventDetails', JSON.parse(details.textContent));
+        if (detail) this.set('eventDetail', JSON.parse(detail.textContent));
       }
     }
     window.customElements.define(NickelTimer.is, NickelTimer);
