@@ -8,9 +8,10 @@
 
     <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
 
-    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
-    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
-    <link rel="import" href="../nickel-timer.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html"/>
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html"/>
+    <link rel="import" href="../../polymer/lib/elements/dom-bind.html"/>
+    <link rel="import" href="../nickel-timer.html"/>
 
     <custom-style>
       <style is="custom-style" include="demo-pages-shared-styles">
@@ -20,15 +21,12 @@
   <body>
     <div class="vertical-section-container centered">
 
+      <!-- Demo 1 -->
       <h3>Basic nickel-timer demo</h3>
       <demo-snippet>
         <style>
-          #counter {
-            padding: 0 10px;
-          }
-          #tic-display {
-            padding-left: 10px;
-          }
+          #counter { padding: 0 10px; }
+          #tic-tac { padding-left: 10px; }
         </style>
         <template>
           <!--
@@ -36,40 +34,34 @@
           -->
           <nickel-timer id="demo1" timer-interval="2"></nickel-timer>
 
-          <div>Counter : <span id="counter">0</span><span id="tic-display"></span></div>
+          <div>Counter : <span id="counter">0</span><span id="tic-tac"></span></div>
           <script>
-            const timer1 = document.getElementById('demo1');
-            const counter = document.getElementById('counter');
-            const ticDisplay = document.getElementById('tic-display');
-
             let n = 0;
-            timer1.addEventListener('tic', function(event) {
+            document.getElementById('demo1').addEventListener('tic', (event) => {
               n = (n+1)%10;
-              counter.textContent = n;
+              document.getElementById('counter').textContent = n;
               showTicTac();
             });
 
-            let tic = 'tic!';
+            let tictac = document.getElementById('tic-tac');
+            let txt = 'tic!';
             function showTicTac() {
-              ticDisplay.textContent = tic;
-              setTimeout(function(){
-                ticDisplay.textContent = '';
-              }, 500);
-              tic = (tic==='tic!') ? 'tac!' : 'tic!';
+              tictac.textContent = txt;
+              setTimeout(() => { tictac.textContent = ''; }, 500);
+              txt = (txt==='tic!') ? 'tac!' : 'tic!';
             }
           </script>
         </template>
       </demo-snippet>
 
-      <h3>nickel-timer demo with custom event details</h3>
+      <!-- Demo 2 -->
+      <h3>Demo with custom event details</h3>
       <demo-snippet>
-        <style>
-          .counter {
-            padding: 0 10px;
-          }
-        </style>
         <template>
-          <nickel-timer id="demo2" timer-interval="1">
+          <nickel-timer
+            id="demo2"
+            timer-interval="1"
+            timer-limit="1">
             <p slot="details">
               {
                 "number": 1,
@@ -80,15 +72,30 @@
           </nickel-timer>
           <div>Event details : <span id="details"></span></div>
           <script>
-            const timer2 = document.getElementById('demo2');
-            const details = document.getElementById('details');
-            timer2.addEventListener('tic', (event) => {
-              details.textContent = JSON.stringify(event.detail);
+            document.getElementById('demo2').addEventListener('tic', (event) => {
+              document.getElementById('details').textContent = JSON.stringify(event.detail);
             });
           </script>
         </template>
       </demo-snippet>
 
+      <!-- Demo 3 -->
+      <h3>Demo with a timer limit</h3>
+      <demo-snippet>
+        <template>
+          <dom-bind>
+            <template>
+              <nickel-timer
+                id="demo3"
+                timer-interval="2"
+                timer-limit="5"
+                count="{{count}}">
+              </nickel-timer>
+              <div>Count : <span id="counter">[[count]]</span></div>
+            </template>
+          </dom-bind>
+        </template>
+      </demo-snippet>
     </div>
   </body>
 </html>

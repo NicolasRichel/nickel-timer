@@ -52,13 +52,15 @@
             notify: true
           },
 
-          /** Time (in timerUnit) between two 'tic'. */
+          /** Time (in `timerUnit`) between two 'tic'. */
           timerInterval: Number,
 
-          /** Maximum number of 'tic'. */
+          /**
+           * Maximum number of 'tic'.
+           */
           timerLimit: {
             type: Number,
-            value: 1
+            value: -1
           },
 
           /** Timer rate. */
@@ -89,10 +91,13 @@
 
       connectedCallback() {
         super.connectedCallback();
-        this.initTimer();
+        this.startTimer();
       }
 
-      initTimer() {
+      /**
+       * Initialize and start the timer.
+       */
+      startTimer() {
         // (Re-)initialize the timer and `count` value
         if (this.timerId) clearInterval(this.timerId);
         this.set('count', 0);
@@ -104,8 +109,14 @@
         this.set('timerId', setInterval(() => {
           this.tic();
           this.set('count', ++this.count);
+          if (this.count===this.timerLimit) clearInterval(this.timerId);
         }, interval));
       }
+
+      /**
+       * Stop the timer (by calling `clearInterval`).
+       */
+      stopTimer() { clearInterval(this.timerId); }
 
       /**
        * Dispatch a custom event when a timer period end.
