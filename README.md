@@ -15,7 +15,7 @@ A simple and configurable timer element.
 ```
 -->
 ```html
-<nickel-timer></nickel-timer>
+<nickel-timer interval="1" unit="min"></nickel-timer>
 ```
 
 ## Contributing
